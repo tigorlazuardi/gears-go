@@ -1,3 +1,3 @@
 module github.com/tigorlazuardi/gears-go/prelude
 
-go 1.19
+go 1.18

@@ -3,9 +3,59 @@ package types
 import (
 	"fmt"
 	"strings"
+
+	"github.com/francoispqt/gojay"
 )
 
+// Interface to convert any type into types.Fields.
+type Fielder interface {
+	Fields() Fields
+}
+
 type Fields map[string]any
+
+func (f Fields) MarshalJSONObject(enc *gojay.Encoder) {
+	for k, v := range f {
+		switch value := v.(type) {
+		case Fielder:
+			// Recursive expansion until there are no more items to expand.
+			enc.AddObjectKey(k, value.Fields())
+		case gojay.MarshalerJSONObject:
+			enc.AddObjectKey(k, value)
+		case gojay.MarshalerJSONArray:
+			enc.AddArrayKey(k, value)
+		case error:
+			b, err := gojay.MarshalAny(value)
+			if err != nil {
+				enc.AddStringKey(k, err.Error())
+				continue
+			}
+			if len(b) == 2 && b[0] == '{' && b[1] == '}' {
+				enc.AddStringKey(k, value.Error())
+				continue
+			}
+			raw := gojay.EmbeddedJSON(b)
+			enc.AddEmbeddedJSONKey(k, &raw)
+			enc.AddStringKey(k+"_summary", value.Error())
+		default:
+			b, err := gojay.MarshalAny(value)
+			if err != nil {
+				enc.AddStringKey(k, err.Error())
+				continue
+			}
+			raw := gojay.EmbeddedJSON(b)
+			enc.AddEmbeddedJSONKey(k, &raw)
+		}
+	}
+}
+
+func (f Fields) MarshalJSON() ([]byte, error) {
+	return gojay.MarshalJSONObject(f)
+}
+
+func (f Fields) IsNil() bool {
+	return f == nil
+}
 
 var (
 	_ Display       = (*Fields)(nil)
