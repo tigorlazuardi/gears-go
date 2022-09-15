@@ -32,6 +32,13 @@ func TestNewFields(t *testing.T) {
 				"watata": nil,
 			},
 		},
+		{
+			name: "Support empty",
+			args: args{
+				values: []any{},
+			},
+			want: map[string]any{},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -113,16 +113,20 @@ func (f Fields) WriteDisplay(s StringWriter) {
 Values must be alternating between string and other values, with even index as string.
 If value is not of type string, it will be coerced to string using fmt.Sprintf.
 
-Values must be at least of Length of two, otherwise it will be ignored and returns nil.
-
 If len of Values is odd, an extra value of nil will be appended to the end.
+
+If values are empty, an empty map will be returned.
+
+Example:
+
+	fields := types.NewFields(
+		"foo", "bar",
+		"baz", 1,
+		"qux", 2,
+	)
 */
 func NewFields(values ...any) Fields {
 	length := len(values)
-	if length < 2 {
-		return nil
-	}
-
 	if length%2 != 0 {
 		values = append(values, nil)
 		length += 1
