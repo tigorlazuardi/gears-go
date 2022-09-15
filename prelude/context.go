@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"sync"
+	"syscall"
 )
 
 var (
@@ -24,7 +25,7 @@ only returns the same context as the first created context.
 func GetCtrlCContext() context.Context {
 	once.Do(func() {
 		c := make(chan os.Signal, 1)
-		signal.Notify(c, os.Interrupt)
+		signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 		ctx, exit := context.WithCancel(ctrlcContext)
 		ctrlcContext = ctx
@@ -33,6 +34,7 @@ func GetCtrlCContext() context.Context {
 			for sig := range c {
 				fmt.Printf("\n[Prelude] Received Signal: %s\n", sig)
 				exit()
+				break
 			}
 		}()
 	})
