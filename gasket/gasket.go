@@ -55,15 +55,14 @@ func (e Error) WriteDisplay(s types.StringWriter) {
 	}
 	_, _ = s.WriteString(e.message)
 	_, _ = s.WriteString("\n\t")
-	if display, ok := e.source.(types.DisplayWriter); ok {
+	switch display := e.source.(type) {
+	case types.DisplayWriter:
 		display.WriteDisplay(s)
-		return
-	}
-	if display, ok := e.source.(types.Display); ok {
+	case types.Display:
 		_, _ = s.WriteString(display.Display())
-		return
+	default:
+		_, _ = s.WriteString(e.source.Error())
 	}
-	_, _ = s.WriteString(e.source.Error())
 }
 
 /*
